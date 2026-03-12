@@ -16,7 +16,7 @@ cityInput.addEventListener("input", async () => {
 
   try {
     const res = await fetch(
-      `https://api.openweathermap.org/geo/1.0/direct?q=${value},CZ&limit=10&appid=${apiKey}`
+      `https://api.openweathermap.org/geo/1.0/direct?q=${value}&limit=10&appid=${apiKey}`
     );
     let matches = await res.json();
     
@@ -50,9 +50,62 @@ cityInput.addEventListener("input", async () => {
   } catch (err) {
     console.error("Chyba při vyhledávání měst:", err);
   }
+    
 });
 
 // vykreslení tabulky s předpovědí
+
+async function loadForecast(city) {
+  const forecastDiv = document.getElementById("forecast");
+  forecastDiv.innerHTML = ""; // smaže starou tabulku
+
+  try {
+    const res = await fetch(
+      `https://api.openweathermap.org/data/2.5/forecast?q=${city},CZ&units=metric&appid=${apiKey}`
+    );
+    const data = await res.json();
+
+    if (data.cod !== "200") {
+      forecastDiv.textContent = "Nepodařilo se načíst předpověď.";
+      return;
+    }
+
+    // seskupení po dnech
+    const daily = {};
+    data.list.forEach(slot => {
+      const date = slot.dt_txt.split(" ")[0];
+      if (!daily[date]) {
+        daily[date] = { min: slot.main.temp_min, max: slot.main.temp_max };
+      } else {
+        daily[date].min = Math.min(daily[date].min, slot.main.temp_min);
+        daily[date].max = Math.max(daily[date].max, slot.main.temp_max);
+      }
+    });
+
+    // vytvoření tabulky
+    const table = document.createElement("table");
+    table.style.border = "1px solid black";
+    table.style.borderCollapse = "collapse";
+
+    const header = table.insertRow();
+    header.insertCell().textContent = "Den";
+    header.insertCell().textContent = "Min (°C)";
+    header.insertCell().textContent = "Max (°C)";
+
+    Object.entries(daily).forEach(([date, temps]) => {
+      const row = table.insertRow();
+      row.insertCell().textContent = date;
+      row.insertCell().textContent = temps.min.toFixed(1);
+      row.insertCell().textContent = temps.max.toFixed(1);
+    });
+
+    forecastDiv.appendChild(table);
+  } catch (err) {
+    forecastDiv.textContent = "Chyba při načítání dat.";
+    console.error(err);
+  }
+}
+/*
 function loadForecast(city) {
   const forecastDiv = document.getElementById("forecast");
   forecastDiv.innerHTML = ""; // smaže starou tabulku
@@ -82,6 +135,8 @@ function loadForecast(city) {
     })
     .catch(err => console.error("Chyba API:", err));
 }
+*/
+
 
 // vykreslení tabulky s předpovědí
 function renderForecast(forecast) {
