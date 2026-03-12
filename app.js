@@ -8,24 +8,6 @@ fetch("cities.json")
   .then(data => { cities = data; })
   .catch(err => console.error("Chyba při načítání cities.json:", err));
 
-// dummy data předpovědi
-const dummyForecast = {
-  "Prague": [
-    { day: "Pondělí", temp: 5 },
-    { day: "Úterý", temp: 7 },
-    { day: "Středa", temp: 10 },
-    { day: "Čtvrtek", temp: 8 },
-    { day: "Pátek", temp: 6 }
-  ],
-  "Brno": [
-    { day: "Pondělí", temp: 3 },
-    { day: "Úterý", temp: 4 },
-    { day: "Středa", temp: 6 },
-    { day: "Čtvrtek", temp: 5 },
-    { day: "Pátek", temp: 2 }
-  ]
-};
-
 // našeptávač
 const cityInput = document.getElementById("city");
 const suggestions = document.getElementById("suggestions");
@@ -72,8 +54,39 @@ function loadForecast(city) {
 
   // https://home.openweathermap.org/
   // key: 5ba12d9a9dbe55f435bc6d84cb8431af
-  const data = dummyForecast[city];
-  if (!data) {
+    const apiKey = "5ba12d9a9dbe55f435bc6d84cb8431af";
+
+    let forecast = null;
+
+  fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${apiKey}&units=metric`)
+    .then(res => {
+      console.log("API request pro město:", city);
+      console.log("API status:", res.status);
+      return res.json();
+    })
+    .then(data => {
+      console.log("API data:", data);
+
+      const daily = data.list.filter(item =>
+        item.dt_txt.includes("12:00:00")
+      );
+
+      const forecast = daily.slice(0,5).map(item => ({
+        day: new Date(item.dt_txt).toLocaleDateString(),
+        temp: item.main.temp
+      }));
+      console.log("Zpracovaná data:", forecast);
+      renderForecast(forecast);
+
+    })
+    .catch(err => console.error("Chyba API:", err));
+}
+
+// vykreslení tabulky s předpovědí
+function renderForecast(forecast) {
+  const forecastDiv = document.getElementById("forecast");
+  
+  if (!forecast) {
     forecastDiv.textContent = "Žádná předpověď pro toto město";
     return;
   }
@@ -91,7 +104,7 @@ function loadForecast(city) {
   });
 
   // data
-  data.forEach(item => {
+  forecast.forEach(item => {
     const row = table.insertRow();
     row.insertCell().textContent = item.day;
     row.insertCell().textContent = item.temp;
