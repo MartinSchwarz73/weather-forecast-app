@@ -1,62 +1,63 @@
 // app.js
 
-let cities = [];
-
-// načtení seznamu měst pro našeptávač
-fetch("cities.json")
-  .then(res => res.json())
-  .then(data => { cities = data; })
-  .catch(err => console.error("Chyba při načítání cities.json:", err));
-
-// našeptávač
+const apiKey = "5ba12d9a9dbe55f435bc6d84cb8431af";
 const cityInput = document.getElementById("city");
 const suggestions = document.getElementById("suggestions");
 
-cityInput.addEventListener("input", () => {
-  const value = cityInput.value.toLowerCase();
+// dynamické vyhledávání měst přes API
+cityInput.addEventListener("input", async () => {
+  const value = cityInput.value.trim();
   suggestions.innerHTML = "";
 
-  if (!value) {
-    suggestions.classList.remove("show"); // fade-out
+  if (value.length < 2) {
+    suggestions.classList.remove("show");
     return;
   }
 
-  const matches = cities.filter(c => c.name.toLowerCase().startsWith(value));
-  
-  if (matches.length === 0) {
-    suggestions.classList.remove("show"); // fade-out
-    return;
-  }
+  try {
+    const res = await fetch(
+      `https://api.openweathermap.org/geo/1.0/direct?q=${value},CZ&limit=10&appid=${apiKey}`
+    );
+    let matches = await res.json();
+    
+    console.log("Geo API matches:", matches);
 
-  matches.forEach(c => {
-    const div = document.createElement("div");
-    div.textContent = c.name;
-    div.className = "suggestion";
-    div.addEventListener("click", () => {
-      cityInput.value = c.name;
-      suggestions.innerHTML = "";
-      suggestions.classList.remove("show"); // fade-out po kliknutí
-      loadForecast(c.name); // vykreslí tabulku
+    // Filtr - jen města která začínají na napsané znaky
+    matches = matches.filter(c => 
+      c.name.toLowerCase().startsWith(value.toLowerCase())
+    );
+
+    if (matches.length === 0) {
+      suggestions.classList.remove("show");
+      return;
+    }
+
+    matches.forEach(city => {
+      const div = document.createElement("div");
+      div.textContent = `${city.name}${city.state ? ", " + city.state : ""} (${city.country})`;
+      div.className = "suggestion";
+      div.addEventListener("click", () => {
+        cityInput.value = city.name;
+        suggestions.innerHTML = "";
+        suggestions.classList.remove("show");
+        loadForecast(city.name);
+      });
+      suggestions.appendChild(div);
     });
-    suggestions.appendChild(div);
-  });
-    // force reflow aby transition proběhla i po innerHTML clear
-  void suggestions.offsetWidth;
 
-  suggestions.classList.add("show"); // fade-in
-
+    void suggestions.offsetWidth;
+    suggestions.classList.add("show");
+  } catch (err) {
+    console.error("Chyba při vyhledávání měst:", err);
+  }
 });
 
-// vykreslení dummy tabulky předpovědi
+// vykreslení tabulky s předpovědí
 function loadForecast(city) {
   const forecastDiv = document.getElementById("forecast");
   forecastDiv.innerHTML = ""; // smaže starou tabulku
 
-  // https://home.openweathermap.org/
-  // key: 5ba12d9a9dbe55f435bc6d84cb8431af
-    const apiKey = "5ba12d9a9dbe55f435bc6d84cb8431af";
-
-    let forecast = null;
+  let forecast = null;
 
   fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${apiKey}&units=metric`)
     .then(res => {
@@ -107,7 +108,7 @@ function renderForecast(forecast) {
   forecast.forEach(item => {
     const row = table.insertRow();
     row.insertCell().textContent = item.day;
-    row.insertCell().textContent = item.temp;
+    row.insertCell().textContent = (Math.round(item.temp * 2) / 2).toFixed(1);
   });
 
   forecastDiv.appendChild(table);
