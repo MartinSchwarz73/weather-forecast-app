@@ -34,10 +34,18 @@ cityInput.addEventListener("input", () => {
   const value = cityInput.value.toLowerCase();
   suggestions.innerHTML = "";
 
-  if (!value) return;
+  if (!value) {
+    suggestions.classList.remove("show"); // fade-out
+    return;
+  }
 
   const matches = cities.filter(c => c.name.toLowerCase().startsWith(value));
   
+  if (matches.length === 0) {
+    suggestions.classList.remove("show"); // fade-out
+    return;
+  }
+
   matches.forEach(c => {
     const div = document.createElement("div");
     div.textContent = c.name;
@@ -45,12 +53,16 @@ cityInput.addEventListener("input", () => {
     div.addEventListener("click", () => {
       cityInput.value = c.name;
       suggestions.innerHTML = "";
-      suggestions.style.display = "none";
+      suggestions.classList.remove("show"); // fade-out po kliknutí
       loadForecast(c.name); // vykreslí tabulku
     });
     suggestions.appendChild(div);
-    suggestions.style.display = "block";
   });
+    // force reflow aby transition proběhla i po innerHTML clear
+  void suggestions.offsetWidth;
+
+  suggestions.classList.add("show"); // fade-in
+
 });
 
 // vykreslení dummy tabulky předpovědi
@@ -90,6 +102,7 @@ function loadForecast(city) {
 
 document.addEventListener("click", e => {
   if (!e.target.closest("#city")) {
-    suggestions.style.display = "none";
+    // suggestions.style.display = "none";
+    suggestions.classList.remove("show");
   }
 });
