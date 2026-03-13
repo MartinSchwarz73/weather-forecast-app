@@ -1,10 +1,13 @@
 // app.js
 
+// API key for OpenWeatherMap
 const apiKey = "5ba12d9a9dbe55f435bc6d84cb8431af";
+
+// references to DOM elements
 const cityInput = document.getElementById("city");
 const suggestions = document.getElementById("suggestions");
 
-// dynamické vyhledávání měst přes API
+// fetch cities from API based on user input
 cityInput.addEventListener("input", async () => {
   const value = cityInput.value.trim();
   suggestions.innerHTML = "";
@@ -19,11 +22,9 @@ cityInput.addEventListener("input", async () => {
       `https://api.openweathermap.org/geo/1.0/direct?q=${value}&limit=10&appid=${apiKey}`
     );
     let matches = await res.json();
-    
-    console.log("Geo API matches:", matches);
 
-    // Filtr - jen města která začínají na napsané znaky
-    matches = matches.filter(c => 
+    // filters results by the entered prefix (case-insensitive)
+    matches = matches.filter(c =>
       c.name.toLowerCase().startsWith(value.toLowerCase())
     );
 
@@ -32,6 +33,7 @@ cityInput.addEventListener("input", async () => {
       return;
     }
 
+    // creates a div for each matching city and adds click event to select city and load forecast
     matches.forEach(city => {
       const div = document.createElement("div");
       div.textContent = `${city.name}${city.state ? ", " + city.state : ""} (${city.country})`;
@@ -50,18 +52,24 @@ cityInput.addEventListener("input", async () => {
   } catch (err) {
     console.error("Chyba při vyhledávání měst:", err);
   }
-    
+
 });
 
-// vykreslení tabulky s předpovědí
-
+/**
+ * Fetches weather forecast for the selected city 
+ * and processes it to get daily min and max temperatures
+ * 
+ * @param {string} city - selected city 
+ * @returns - none
+ */
 async function loadForecast(city) {
   const forecastDiv = document.getElementById("forecast");
-  forecastDiv.innerHTML = ""; // smaže starou tabulku
+  forecastDiv.innerHTML = ""; // clear previous forecast
 
   try {
+    // fetch forecast data for the city
     const res = await fetch(
-      `https://api.openweathermap.org/data/2.5/forecast?q=${city},CZ&units=metric&appid=${apiKey}`
+      `https://api.openweathermap.org/data/2.5/forecast?q=${city}&units=metric&appid=${apiKey}`
     );
     const data = await res.json();
 
@@ -70,10 +78,10 @@ async function loadForecast(city) {
       return;
     }
 
-    // seskupení po dnech
+    // processes the forecast data to get daily min and max temperatures
     const daily = {};
     data.list.forEach(slot => {
-      const date = slot.dt_txt.split(" ")[0];
+      const date = new Date(slot.dt_txt).toLocaleDateString("cs-CZ", { weekday: "short", day: "2-digit", month: "2-digit", year: "numeric" });
       if (!daily[date]) {
         daily[date] = { min: slot.main.temp_min, max: slot.main.temp_max };
       } else {
@@ -81,97 +89,58 @@ async function loadForecast(city) {
         daily[date].max = Math.max(daily[date].max, slot.main.temp_max);
       }
     });
+    // calls the function to render the forecast table
+    renderForecast(daily);
 
-    // vytvoření tabulky
-    const table = document.createElement("table");
-    table.style.border = "1px solid black";
-    table.style.borderCollapse = "collapse";
-
-    const header = table.insertRow();
-    header.insertCell().textContent = "Den";
-    header.insertCell().textContent = "Min (°C)";
-    header.insertCell().textContent = "Max (°C)";
-
-    Object.entries(daily).forEach(([date, temps]) => {
-      const row = table.insertRow();
-      row.insertCell().textContent = date;
-      row.insertCell().textContent = temps.min.toFixed(1);
-      row.insertCell().textContent = temps.max.toFixed(1);
-    });
-
-    forecastDiv.appendChild(table);
   } catch (err) {
     forecastDiv.textContent = "Chyba při načítání dat.";
     console.error(err);
   }
 }
-/*
-function loadForecast(city) {
-  const forecastDiv = document.getElementById("forecast");
-  forecastDiv.innerHTML = ""; // smaže starou tabulku
 
-  let forecast = null;
-
-  fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${apiKey}&units=metric`)
-    .then(res => {
-      console.log("API request pro město:", city);
-      console.log("API status:", res.status);
-      return res.json();
-    })
-    .then(data => {
-      console.log("API data:", data);
-
-      const daily = data.list.filter(item =>
-        item.dt_txt.includes("12:00:00")
-      );
-
-      const forecast = daily.slice(0,5).map(item => ({
-        day: new Date(item.dt_txt).toLocaleDateString(),
-        temp: item.main.temp
-      }));
-      console.log("Zpracovaná data:", forecast);
-      renderForecast(forecast);
-
-    })
-    .catch(err => console.error("Chyba API:", err));
-}
-*/
-
-
-// vykreslení tabulky s předpovědí
+/**
+ * Renders the forecast data in a table format
+ * 
+ * @param {Object} forecast - object containing daily min and max temperatures
+ * in the format { "date": { min: value, max: value }, ... }
+ * @returns - none
+ */
 function renderForecast(forecast) {
   const forecastDiv = document.getElementById("forecast");
-  
+
   if (!forecast) {
     forecastDiv.textContent = "Žádná předpověď pro toto město";
     return;
   }
 
+  // creates a table to display the forecast data
   const table = document.createElement("table");
   table.style.border = "1px solid black";
   table.style.borderCollapse = "collapse";
 
-  // hlavička tabulky
+  // creates the header row for the table
   const header = table.insertRow();
-  ["Den", "Teplota (°C)"].forEach(text => {
+  ["Den", "Min (°C)", "Max (°C)"].forEach(text => {
     const th = document.createElement("th");
     th.textContent = text;
     table.rows[0].appendChild(th);
   });
 
-  // data
-  forecast.forEach(item => {
+  // creates a row for each day in the forecast and fills in the date, min, and max 
+  // temperatures rounded to the nearest 0.5 degree
+  Object.entries(forecast).forEach(([date, temps]) => {
     const row = table.insertRow();
-    row.insertCell().textContent = item.day;
-    row.insertCell().textContent = (Math.round(item.temp * 2) / 2).toFixed(1);
+    row.insertCell().textContent = date;
+    row.insertCell().textContent = (Math.round(temps.min * 2) / 2).toFixed(1);
+    row.insertCell().textContent = (Math.round(temps.max * 2) / 2).toFixed(1);
   });
 
   forecastDiv.appendChild(table);
 }
 
+// hides suggestions when clicking outside the input or suggestions
 document.addEventListener("click", e => {
   if (!e.target.closest("#city")) {
-    // suggestions.style.display = "none";
     suggestions.classList.remove("show");
   }
 });
