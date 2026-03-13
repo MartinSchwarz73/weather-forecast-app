@@ -75,6 +75,17 @@ table {
   box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
 
+table img {
+  width: 40px;
+  height: 40px;
+  transition: transform 0.2s;
+}
+
+table img:hover {
+  transform: scale(1.2);
+  cursor: pointer;
+}
+
 th {
   background-color: #007BFF;
   color: white;

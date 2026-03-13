@@ -6,6 +6,8 @@ const apiKey = "5ba12d9a9dbe55f435bc6d84cb8431af";
 // references to DOM elements
 const cityInput = document.getElementById("city");
 const suggestions = document.getElementById("suggestions");
+const forecastDiv = document.getElementById("forecast");
+
 
 // fetch cities from API based on user input
 cityInput.addEventListener("input", async () => {
@@ -63,13 +65,12 @@ cityInput.addEventListener("input", async () => {
  * @returns - none
  */
 async function loadForecast(city) {
-  const forecastDiv = document.getElementById("forecast");
   forecastDiv.innerHTML = ""; // clear previous forecast
 
   try {
     // fetch forecast data for the city
     const res = await fetch(
-      `https://api.openweathermap.org/data/2.5/forecast?q=${city}&units=metric&appid=${apiKey}`
+      `https://api.openweathermap.org/data/2.5/forecast?q=${city}&units=metric&lang=cz&appid=${apiKey}`
     );
     const data = await res.json();
 
@@ -83,10 +84,19 @@ async function loadForecast(city) {
     data.list.forEach(slot => {
       const date = new Date(slot.dt_txt).toLocaleDateString("cs-CZ", { weekday: "short", day: "2-digit", month: "2-digit", year: "numeric" });
       if (!daily[date]) {
-        daily[date] = { min: slot.main.temp_min, max: slot.main.temp_max };
+        daily[date] = {
+          min: slot.main.temp_min,
+          max: slot.main.temp_max,
+          icon: slot.weather[0].icon,
+          description: slot.weather[0].description
+        };
       } else {
         daily[date].min = Math.min(daily[date].min, slot.main.temp_min);
         daily[date].max = Math.max(daily[date].max, slot.main.temp_max);
+      }
+      if (slot.dt_txt.includes("12:00:00")) {
+        daily[date].icon = slot.weather[0].icon;
+        daily[date].description = slot.weather[0].description;
       }
     });
     // calls the function to render the forecast table
@@ -106,8 +116,6 @@ async function loadForecast(city) {
  * @returns - none
  */
 function renderForecast(forecast) {
-  const forecastDiv = document.getElementById("forecast");
-
   if (!forecast) {
     forecastDiv.textContent = "Žádná předpověď pro toto město";
     return;
@@ -120,7 +128,7 @@ function renderForecast(forecast) {
 
   // creates the header row for the table
   const header = table.insertRow();
-  ["Den", "Min (°C)", "Max (°C)"].forEach(text => {
+  ["Den", "Počasí", "Min (°C)", "Max (°C)"].forEach(text => {
     const th = document.createElement("th");
     th.textContent = text;
     table.rows[0].appendChild(th);
@@ -131,6 +139,12 @@ function renderForecast(forecast) {
   Object.entries(forecast).forEach(([date, temps]) => {
     const row = table.insertRow();
     row.insertCell().textContent = date;
+    const iconCell = row.insertCell();
+    const iconImg = document.createElement("img");
+    iconImg.src = `https://openweathermap.org/img/wn/${temps.icon}@2x.png`;
+    iconImg.alt = temps.description;
+    iconImg.title = temps.description;
+    iconCell.appendChild(iconImg);
     row.insertCell().textContent = (Math.round(temps.min * 2) / 2).toFixed(1);
     row.insertCell().textContent = (Math.round(temps.max * 2) / 2).toFixed(1);
   });
