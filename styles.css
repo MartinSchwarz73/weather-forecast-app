@@ -4,7 +4,7 @@
 body {
   font-family: Arial, sans-serif;
   padding: 20px;
-  background-color: #f9f9f9;
+  background-color: #36eea7;
 }
 
 h1 {
@@ -20,30 +20,32 @@ h1 {
   font-size: 14px;
   border: 1px solid #999;
   border-radius: 4px;
-  outline: none; /* odstraní defaultní linku a modré orámování */
+  outline: none;
+  /* odstraní defaultní linku a modré orámování */
 }
 
 #city:focus {
   border-color: #007BFF;
-  box-shadow: 0 0 5px rgba(0,123,255,0.5);
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
 }
 
 /* ===========================
    Našeptávač
    =========================== */
 #suggestions {
-  display: block; 
+  display: block;
   border: 1px solid #ccc;
   opacity: 0;
-  transition: opacity 0.3s ease-in-out; 
+  transition: opacity 0.3s ease-in-out;
   max-height: 120px;
   overflow-y: auto;
-  width: 210px; /* širší než input */
+  width: 210px;
+  /* širší než input */
   background: white;
   position: absolute;
   z-index: 1000;
   border-radius: 4px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15); 
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
 #suggestions.show {
@@ -72,18 +74,30 @@ table {
   max-width: 400px;
   border-radius: 4px;
   overflow: hidden;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 table img {
-  width: 40px;
-  height: 40px;
-  transition: transform 0.2s;
+  width: 50px;
+  height: 50px;
+  transition: transform 0.5s, background-image 0.5s;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-image: url('/images/clear-100x100px.png');
 }
 
 table img:hover {
-  transform: scale(1.2);
+  transform: scale(1.5);
+  background-image: url('/images/mini-graph-100x100px.png');
   cursor: pointer;
+}
+
+table td,
+table th {
+  text-align: center;
+  padding: 10px 12px;
+  overflow: visible;
 }
 
 th {
@@ -92,12 +106,13 @@ th {
   font-weight: normal;
 }
 
-td, th {
+td,
+th {
   border-bottom: 1px solid #ddd;
   padding: 8px;
   text-align: center;
 }
 
 tr:last-child td {
-  border-bottom: none; /* odstraní linku pod posledním řádkem */
+  border-bottom: none;
 }

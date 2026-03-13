@@ -111,8 +111,8 @@ async function loadForecast(city) {
 /**
  * Renders the forecast data in a table format
  * 
- * @param {Object} forecast - object containing daily min and max temperatures
- * in the format { "date": { min: value, max: value }, ... }
+ * @param {Object} forecast - object containing daily min and max temperatures, weather icon, description
+ * in the format { "date": { min: value, max: value, icon: value, description: value }, ... }
  * @returns - none
  */
 function renderForecast(forecast) {
