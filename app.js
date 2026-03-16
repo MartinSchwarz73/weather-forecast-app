@@ -8,8 +8,35 @@ const cityInput = document.getElementById("city");
 const suggestions = document.getElementById("suggestions");
 const forecastDiv = document.getElementById("forecast");
 
-let currentChart; // aby se při každém kliknutí přepsal starý graf
+let currentChart; // reference to the current Chart.js instance
 
+// tries to get user's location on page load and 
+// loads forecast for that location
+window.addEventListener('load', () => {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      position => {
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
+        // Reverse geocoding pomocí OpenWeatherMap
+        fetch(`https://api.openweathermap.org/geo/1.0/reverse?lat=${lat}&lon=${lon}&limit=1&appid=${apiKey}`)
+          .then(res => res.json())
+          .then(data => {
+            if (data.length > 0) {
+              cityInput.value = data[0].name;
+              loadForecast(data[0].name); 
+            }
+          })
+          .catch(err => console.error('Chyba při reverse geocoding:', err));
+      },
+      error => {
+        console.error('Geolokace není podporována nebo odmítnuta:', error);
+      }
+    );
+  } else {
+    console.error('Geolokace není podporována v tomto prohlížeči.');
+  }
+});
 
 // fetch cities from API based on user input
 cityInput.addEventListener("input", async () => {
@@ -84,7 +111,9 @@ async function loadForecast(city) {
     // processes the forecast data to get daily min and max temperatures
     const daily = {};
     data.list.forEach(slot => {
-      const date = new Date(slot.dt_txt).toLocaleDateString("cs-CZ", { weekday: "short", day: "2-digit", month: "2-digit", year: "numeric" });
+      const weekday = new Date(slot.dt_txt).toLocaleDateString("cs-CZ", { weekday: "long" });
+      const datePart = new Date(slot.dt_txt).toLocaleDateString("cs-CZ", { day: "2-digit", month: "2-digit", year: "numeric" });
+      const date = `${weekday}<br>${datePart}`;
       if (!daily[date]) {
         daily[date] = {
           min: slot.main.temp_min,
@@ -141,50 +170,60 @@ function renderForecast(forecast) {
   table.style.border = "1px solid black";
   table.style.borderCollapse = "collapse";
 
-  // creates the header row for the table
-  const header = table.insertRow();
-  ["Den", "Počasí", "Min (°C)", "Max (°C)"].forEach(text => {
-    const th = document.createElement("th");
-    th.textContent = text;
-    table.rows[0].appendChild(th);
-  });
+  // get array of days
+  const days = Object.keys(forecast);
 
-  // creates a row for each day in the forecast and fills in the date, min, and max 
-  // temperatures rounded to the nearest 0.5 degree
-  Object.entries(forecast).forEach(([date, temps]) => {
+  // categories for the transposed table
+  const categories = ["Den", "Počasí", "Min (°C)", "Max (°C)"];
+
+  // creates a row for each category
+  categories.forEach(category => {
     const row = table.insertRow();
-    row.insertCell().textContent = date;
 
-    const iconCell = row.insertCell();
-    //    const iconImg = document.createElement("img");
-    //    iconImg.src = `https://openweathermap.org/img/wn/${temps.icon}@2x.png`;
-    const iconDiv = document.createElement("div");
-    iconDiv.className = "weather-icon";
+    // first cell is the category header
+    const th = document.createElement("th");
+    th.textContent = category;
+    row.appendChild(th);
 
-    const weather = document.createElement("div");
-    weather.className = "weather";
-    weather.style.backgroundImage =
-      `url(https://openweathermap.org/img/wn/${temps.icon}@2x.png)`;
+    // then add cells for each day
+    days.forEach(date => {
+      const td = document.createElement("td");
 
-    const graph = document.createElement("div");
-    graph.className = "graph";
-    graph.style.backgroundImage =
-      `url(/images/mini-graph-100x100px.png)`;
+      if (category === "Den") {
+        td.innerHTML = date;
+      } else if (category === "Počasí") {
+        const iconDiv = document.createElement("div");
+        iconDiv.className = "weather-icon";
 
-    iconDiv.appendChild(weather);
-    iconDiv.appendChild(graph);
+        const weather = document.createElement("div");
+        weather.className = "weather";
+        weather.style.backgroundImage =
+          `url(https://openweathermap.org/img/wn/${forecast[date].icon}@2x.png)`;
 
-    iconCell.appendChild(iconDiv);
+        const graph = document.createElement("div");
+        graph.className = "graph";
+        graph.style.backgroundImage =
+          `url(/images/mini-graph-100x100px.png)`;
 
-    iconDiv.addEventListener("click", () => {
-      const dayData = forecast[date];
-      if (!dayData) return;
-      document.getElementById("chartModal").style.display = "flex";
-      showChart(dayData.times, dayData.temps);
+        iconDiv.appendChild(weather);
+        iconDiv.appendChild(graph);
+
+        iconDiv.addEventListener("click", () => {
+          const dayData = forecast[date];
+          if (!dayData) return;
+          document.getElementById("chartModal").style.display = "flex";
+          showChart(dayData.times, dayData.temps);
+        });
+
+        td.appendChild(iconDiv);
+      } else if (category === "Min (°C)") {
+        td.textContent = (Math.round(forecast[date].min * 2) / 2).toFixed(1);
+      } else if (category === "Max (°C)") {
+        td.textContent = (Math.round(forecast[date].max * 2) / 2).toFixed(1);
+      }
+
+      row.appendChild(td);
     });
-
-    row.insertCell().textContent = (Math.round(temps.min * 2) / 2).toFixed(1);
-    row.insertCell().textContent = (Math.round(temps.max * 2) / 2).toFixed(1);
   });
 
   forecastDiv.appendChild(table);
@@ -193,7 +232,7 @@ function renderForecast(forecast) {
 function showChart(times, temps) {
   const ctx = document.getElementById("dayChart").getContext("2d");
 
-  // znič starý graf, pokud existuje
+  // destroy previous chart instance if it exists 
   if (currentChart) currentChart.destroy();
 
   currentChart = new Chart(ctx, {

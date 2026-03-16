@@ -10,27 +10,28 @@
 <body>
   <div id="skyBackground"></div>
 
-  <!-- Hlavní obsah -->
+  <!-- The main container -->
   <div id="mainContainer">
-    <h1>Předpověď počasí</h1>
-
-    <!-- Domeček -->
+    
+    <!-- House with characters -->
     <div id="houseWithCharacters">
-      <img src="/images/house-200px.png" alt="Domeček">
+      <img src="/images/house-400px.png" alt="Domeček">
     </div>
 
     <!-- wrapper pro input + suggestions -->
     <div class="input-wrapper">
+      <h1>Předpověď počasí pro</h1>
       <input type="text" id="city" autocomplete="off" placeholder="Zadejte město">
       <div id="suggestions"></div>
     </div>
 
-    <!-- Forecast tabulka -->
+    <!-- Forecast container -->
     <div id="forecastContainer">
       <div id="forecast"></div>
     </div>
   </div>
 
+  <!-- modal window for chart -->
   <div id="chartModal" class="modal">
     <div class="modal-content">
       <canvas id="dayChart"></canvas>
