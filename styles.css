@@ -4,24 +4,68 @@
 body {
   font-family: Arial, sans-serif;
   padding: 20px;
+  /* původní barva pozadí nahradíme statickým domečkem */
   background-color: #36eea7;
+  position: relative;
+  overflow-x: hidden;
 }
 
-h1 {
-  margin-bottom: 15px;
+/* pozadí domečku */
+#skyBackground {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url("/images/sky.png");
+  /* statický domeček */
+  background-size: cover;
+  background-position: center;
+  z-index: 0;
 }
+
+#houseWithCharacters {
+  position: relative;
+  width: 200px;
+  margin: 0 auto;
+  z-index: 1;
+  text-align: center;
+}
+
+/* Hlavní kontejner s vertikálním layoutem */
+#mainContainer {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: 100vh;
+  padding-top: 20px;
+  gap: 15px;
+  /* mezera mezi nápisem, inputem a tabulkou */
+}
+
+/* Nápis nad domečkem */
+h1 {
+  font-size: 2rem;
+  color: #fff;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  margin-bottom: 10px;
+}
+
 
 /* ===========================
    Input pro město
    =========================== */
 #city {
   width: 200px;
-  padding: 8px;
-  font-size: 14px;
-  border: 1px solid #999;
-  border-radius: 4px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  border: none;
   outline: none;
-  /* odstraní defaultní linku a modré orámování */
+  font-size: 14px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 #city:focus {
@@ -32,20 +76,26 @@ h1 {
 /* ===========================
    Našeptávač
    =========================== */
+
+.input-wrapper {
+  position: relative;
+  width: 200px;
+  margin-bottom: 15px;
+}
+
 #suggestions {
-  display: block;
-  border: 1px solid #ccc;
-  opacity: 0;
-  transition: opacity 0.3s ease-in-out;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
   max-height: 120px;
   overflow-y: auto;
-  width: 210px;
-  /* širší než input */
-  background: white;
-  position: absolute;
-  z-index: 1000;
+  background: #fff;
   border-radius: 4px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+  z-index: 1000;
 }
 
 #suggestions.show {
@@ -62,10 +112,26 @@ h1 {
 }
 
 /* ===========================
+   Hlavní plocha/tabulka
+   =========================== */
+#forecastContainer {
+  width: 280px;                 /* menší než domeček */
+  margin-top: 10px;
+  background: rgba(30, 144, 255, 0.25); /* jemná modrá průhledná */
+  backdrop-filter: blur(8px);   /* efekt “skla” */
+  border-radius: 16px;
+  padding: 15px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+  text-align: center;
+  z-index: 2;
+}
+
+/* ===========================
    Forecast tabulka
    =========================== */
 #forecast {
-  margin-top: 20px;
+  margin-top: 0;
+  /* už má padding ve forecastContainer */
 }
 
 .weather-icon {
@@ -101,6 +167,9 @@ h1 {
   opacity: 1;
 }
 
+/* ===========================
+   Modalní okno
+   =========================== */
 .modal {
   position: fixed;
   top: 0;
@@ -112,46 +181,45 @@ h1 {
   justify-content: center;
   align-items: center;
 
-  background: rgba(0,0,0,0.2); /* jemné ztmavení stránky */
+  background: rgba(0, 0, 0, 0.2);
+  z-index: 10;
 }
 
 .modal-content {
-  background: rgba(255,255,255,0.8); /* jemná průhlednost */
+  background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(6px);
   padding: 20px;
   border-radius: 20px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 
   width: 350px;
+  position: relative;
+  z-index: 11;
 }
 
+/* ===========================
+   Tabulka
+   =========================== */
 table {
-  border-collapse: collapse;
   width: 100%;
-  max-width: 400px;
-  border-radius: 4px;
+  border-collapse: collapse;
+  border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-}
-
-table td,
-table th {
-  text-align: center;
-  padding: 10px 12px;
-  overflow: visible;
+  background: rgba(255,255,255,0.15); /* jemná modrá bílá průhlednost */
+  box-shadow: inset 0 0 5px rgba(255,255,255,0.2);
 }
 
 th {
-  background-color: #007BFF;
+  background-color: rgba(30,144,255,0.5); /* modrý gradient efekt */
   color: white;
   font-weight: normal;
+  padding: 6px;
 }
 
-td,
-th {
-  border-bottom: 1px solid #ddd;
-  padding: 8px;
-  text-align: center;
+td {
+  padding: 6px;
+  color: #fff;
+  border-bottom: 1px solid rgba(255,255,255,0.2);
 }
 
 tr:last-child td {

@@ -1,19 +1,36 @@
 <!DOCTYPE html>
 <html lang="cs">
+
 <head>
   <meta charset="UTF-8">
   <title>Weather App</title>
   <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
-  <h1>Předpověď počasí</h1>
-  <label for="city">Město:</label>
-  <input type="text" id="city" autocomplete="off">
-  <div id="suggestions"></div>
+  <div id="skyBackground"></div>
 
-  <div id="forecast"></div>
+  <!-- Hlavní obsah -->
+  <div id="mainContainer">
+    <h1>Předpověď počasí</h1>
 
-  <!-- modální okno pro graf -->
+    <!-- Domeček -->
+    <div id="houseWithCharacters">
+      <img src="/images/house-200px.png" alt="Domeček">
+    </div>
+
+    <!-- wrapper pro input + suggestions -->
+    <div class="input-wrapper">
+      <input type="text" id="city" autocomplete="off" placeholder="Zadejte město">
+      <div id="suggestions"></div>
+    </div>
+
+    <!-- Forecast tabulka -->
+    <div id="forecastContainer">
+      <div id="forecast"></div>
+    </div>
+  </div>
+
   <div id="chartModal" class="modal">
     <div class="modal-content">
       <canvas id="dayChart"></canvas>
@@ -22,6 +39,6 @@
 
   <script src="app.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  
 </body>
+
 </html>
