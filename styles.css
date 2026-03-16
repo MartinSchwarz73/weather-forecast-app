@@ -68,6 +68,63 @@ h1 {
   margin-top: 20px;
 }
 
+.weather-icon {
+  position: relative;
+  width: 50px;
+  height: 50px;
+  cursor: pointer;
+}
+
+.weather-icon .weather,
+.weather-icon .graph {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  transition: transform 1.0s, opacity 3.0s;
+}
+
+/* graf je na začátku skrytý */
+.weather-icon .graph {
+  opacity: 0;
+}
+
+/* hover animace */
+.weather-icon:hover .weather {
+  transform: scale(1.5);
+  opacity: 0;
+}
+
+.weather-icon:hover .graph {
+  opacity: 1;
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+
+  display: none;
+  justify-content: center;
+  align-items: center;
+
+  background: rgba(0,0,0,0.2); /* jemné ztmavení stránky */
+}
+
+.modal-content {
+  background: rgba(255,255,255,0.8); /* jemná průhlednost */
+  backdrop-filter: blur(6px);
+  padding: 20px;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+
+  width: 350px;
+}
+
 table {
   border-collapse: collapse;
   width: 100%;
@@ -75,22 +132,6 @@ table {
   border-radius: 4px;
   overflow: hidden;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-}
-
-table img {
-  width: 50px;
-  height: 50px;
-  transition: transform 0.5s, background-image 0.5s;
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
-  background-image: url('/images/clear-100x100px.png');
-}
-
-table img:hover {
-  transform: scale(1.5);
-  background-image: url('/images/mini-graph-100x100px.png');
-  cursor: pointer;
 }
 
 table td,

@@ -8,6 +8,8 @@ const cityInput = document.getElementById("city");
 const suggestions = document.getElementById("suggestions");
 const forecastDiv = document.getElementById("forecast");
 
+let currentChart; // aby se při každém kliknutí přepsal starý graf
+
 
 // fetch cities from API based on user input
 cityInput.addEventListener("input", async () => {
@@ -88,17 +90,30 @@ async function loadForecast(city) {
           min: slot.main.temp_min,
           max: slot.main.temp_max,
           icon: slot.weather[0].icon,
-          description: slot.weather[0].description
+          description: slot.weather[0].description,
+          temps: [],
+          times: []
         };
       } else {
         daily[date].min = Math.min(daily[date].min, slot.main.temp_min);
         daily[date].max = Math.max(daily[date].max, slot.main.temp_max);
       }
+
+      // graf data
+      daily[date].temps.push(slot.main.temp);
+      daily[date].times.push(
+        new Date(slot.dt_txt).toLocaleTimeString("cs-CZ", {
+          hour: "2-digit",
+          minute: "2-digit"
+        })
+      );
+
       if (slot.dt_txt.includes("12:00:00")) {
         daily[date].icon = slot.weather[0].icon;
         daily[date].description = slot.weather[0].description;
       }
     });
+
     // calls the function to render the forecast table
     renderForecast(daily);
 
@@ -139,18 +154,90 @@ function renderForecast(forecast) {
   Object.entries(forecast).forEach(([date, temps]) => {
     const row = table.insertRow();
     row.insertCell().textContent = date;
+
     const iconCell = row.insertCell();
-    const iconImg = document.createElement("img");
-    iconImg.src = `https://openweathermap.org/img/wn/${temps.icon}@2x.png`;
-    iconImg.alt = temps.description;
-    iconImg.title = temps.description;
-    iconCell.appendChild(iconImg);
+    //    const iconImg = document.createElement("img");
+    //    iconImg.src = `https://openweathermap.org/img/wn/${temps.icon}@2x.png`;
+    const iconDiv = document.createElement("div");
+    iconDiv.className = "weather-icon";
+
+    const weather = document.createElement("div");
+    weather.className = "weather";
+    weather.style.backgroundImage =
+      `url(https://openweathermap.org/img/wn/${temps.icon}@2x.png)`;
+
+    const graph = document.createElement("div");
+    graph.className = "graph";
+    graph.style.backgroundImage =
+      `url(/images/mini-graph-100x100px.png)`;
+
+    iconDiv.appendChild(weather);
+    iconDiv.appendChild(graph);
+
+    iconCell.appendChild(iconDiv);
+
+    iconDiv.addEventListener("click", () => {
+      const dayData = forecast[date];
+      if (!dayData) return;
+      document.getElementById("chartModal").style.display = "flex";
+      showChart(dayData.times, dayData.temps);
+    });
+
     row.insertCell().textContent = (Math.round(temps.min * 2) / 2).toFixed(1);
     row.insertCell().textContent = (Math.round(temps.max * 2) / 2).toFixed(1);
   });
 
   forecastDiv.appendChild(table);
 }
+
+function showChart(times, temps) {
+  const ctx = document.getElementById("dayChart").getContext("2d");
+
+  // znič starý graf, pokud existuje
+  if (currentChart) currentChart.destroy();
+
+  currentChart = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: times,
+      datasets: [{
+        label: "Teplota °C",
+        data: temps,
+        borderColor: "orange",
+        backgroundColor: "rgba(255,165,0,0.2)",
+        tension: 0.4,
+        fill: true,
+        pointRadius: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          display: true
+        }
+      },
+      scales: {
+        y: {
+          suggestedMin: Math.min(...temps) - 2,
+          suggestedMax: Math.max(...temps) + 2
+        }
+      }
+    }
+  });
+}
+
+// hides the chart modal when clicking outside the chart
+document.getElementById("chartModal").addEventListener("click", () => {
+  document.getElementById("chartModal").style.display = "none";
+});
+
+// hides the chart modal when pressing the Escape key
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") {
+    document.getElementById("chartModal").style.display = "none";
+  }
+});
 
 // hides suggestions when clicking outside the input or suggestions
 document.addEventListener("click", e => {
