@@ -43,7 +43,7 @@ export class UIRenderer {
           const graph = document.createElement("div");
           graph.className = "graph";
           graph.style.backgroundImage =
-            `url(/images/mini-graph-100x100px.png)`;
+            `url(images/mini-graph-100x100px.png)`;
 
           iconDiv.appendChild(weather);
           iconDiv.appendChild(graph);
