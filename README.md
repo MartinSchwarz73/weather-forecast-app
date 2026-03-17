@@ -1,24 +1,35 @@
 # Weather Forecast App
 
-Jednoduchá single-page aplikace pro zobrazení předpovědi počasí pomocí OpenWeatherMap API.
+Simple web application for displaying a 5-day weather forecast.
 
-Popis aplikace  
-Aplikace umožňuje uživateli vyhledat město pomocí našeptávače a zobrazit 5denní předpověď počasí v transponované tabulce (řádky pro kategorie jako den, počasí, min/max teploty; sloupce pro dny). Při kliknutí na ikonu počasí se otevře graf teplot pro daný den. Aplikace automaticky detekuje polohu uživatele a načte předpověď pro nejbližší město.
+Live demo:  
+https://martinschwarz73.github.io/weather-forecast-app/
 
-Spuštění  
-Naklonujte repozitář: git clone <repo-url>
-Otevřete index.html v moderním prohlížeči (podporuje poslední verze Chrome, Firefox nebo Edge).
-Pro lokální server: Spusťte python3 -m http.server 8000 a otevřete http://localhost:8000.
+## Features
 
-Podporované prohlížeče  
-Google Chrome (poslední verze)  
-Mozilla Firefox (poslední verze)  
-Microsoft Edge (poslední verze)  
+- city search with autocomplete
+- weather forecast for selected city
+- daily min/max temperatures
+- dynamic data from OpenWeather API
 
-Vnitřní struktura  
-index.html: Hlavní HTML stránka s layoutem (input, tabulka, modal).  
-app.js: JavaScript logika – načítání dat z API, našeptávač, renderování tabulky, geolokace, grafy (pomocí Chart.js).  
-styles.css: CSS styly pro responsive design, animace a UI.  
-cities.json: Lokální seznam měst (nepoužitý; našeptávač používá API).  
-images: Statické obrázky a ikony.  
-weatherCodes.json: Mapování kódů počasí (nepoužitý).  
+## Technologies
+
+- JavaScript (ES6+)
+- Object-Oriented Programming (OOP)
+- HTML5, CSS3
+- OpenWeather API
+
+## Structure
+
+The application is built using an object-oriented approach.
+
+Main responsibilities:
+- handling user input (autocomplete)
+- fetching data from API
+- rendering forecast to the DOM
+
+## Notes
+
+- data are fetched from OpenWeather API
+- forecast is aggregated from 3-hour intervals
+- dates are formatted using browser locale
