@@ -1,5 +1,5 @@
 :root {
-  --h1-color: #fff;
+  --h1-color: rgba(30, 144, 255, 0.60);
   --shadow: rgba(0, 0, 0, 0.2);
   --shadow-white: rgba(255, 255, 255, 0.2);
   --city-border-color: #007BFF;
@@ -53,9 +53,9 @@ body {
 }
 
 h1 {
-  font-size: 2rem;
+  font-size: 26px;
   color: var(--h1-color);
-  text-shadow: 2px 2px 4px var(--shadow);
+  text-shadow: 2px 2px 3px var(--shadow);
   margin-bottom: 10px;
 }
 
